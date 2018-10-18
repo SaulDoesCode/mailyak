@@ -64,7 +64,7 @@ func New(host string, auth smtp.Auth) *MailYak {
 // Attachments are read when Send() is called, and any connection/authentication
 // errors will be returned by Send().
 func (m *MailYak) Send() error {
-	buf, err := m.buildMime()
+	buf, err := m.MimeBuf()
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func (m *MailYak) Send() error {
 // Attachments are read when Send() is called, and any connection/authentication
 // errors will be returned by Send().
 func (m *MailYak) SignAndSend(s dkim.Signature, key *rsa.PrivateKey) error {
-	buf, err := m.buildMime()
+	buf, err := m.MimeBuf()
 	if err != nil {
 		return err
 	}
@@ -102,18 +102,6 @@ func (m *MailYak) SignAndSend(s dkim.Signature, key *rsa.PrivateKey) error {
 		append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...),
 		output.Bytes(),
 	)
-}
-
-// MimeBuf returns the buffer containing all the RAW MIME data.
-//
-// MimeBuf is typically used with an API service such as Amazon SES that does
-// not use an SMTP interface.
-func (m *MailYak) MimeBuf() (*bytes.Buffer, error) {
-	buf, err := m.buildMime()
-	if err != nil {
-		return nil, err
-	}
-	return buf, nil
 }
 
 // String returns a redacted description of the email state, typically for

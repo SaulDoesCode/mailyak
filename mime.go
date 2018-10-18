@@ -9,7 +9,11 @@ import (
 	"net/textproto"
 )
 
-func (m *MailYak) buildMime() (*bytes.Buffer, error) {
+// MimeBuf returns the buffer containing all the RAW MIME data.
+//
+// MimeBuf is typically used with an API service such as Amazon SES that does
+// not use an SMTP interface.
+func (m *MailYak) MimeBuf() (*bytes.Buffer, error) {
 	mb, err := randomBoundary()
 	if err != nil {
 		return nil, err
