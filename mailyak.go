@@ -31,7 +31,6 @@ type MailYak struct {
 	attachments    []attachment
 	auth           smtp.Auth
 	trimRegex      *regexp.Regexp
-	key            *rsa.PrivateKey
 	host           string
 	writeBccHeader bool
 	date           string
