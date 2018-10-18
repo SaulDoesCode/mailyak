@@ -59,29 +59,10 @@ func New(host string, auth smtp.Auth) *MailYak {
 	}
 }
 
-// Send attempts to send the built email via the configured SMTP server.
-//
-// Attachments are read when Send() is called, and any connection/authentication
-// errors will be returned by Send().
-func (m *MailYak) Send() error {
-	buf, err := m.MimeBuf()
-	if err != nil {
-		return err
-	}
-
-	return smtp.SendMail(
-		m.host,
-		m.auth,
-		m.fromAddr,
-		append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...),
-		buf.Bytes(),
-	)
-}
-
 // SignAndSend attempts to send the built email via the configured SMTP server.
 //
-// Attachments are read when Send() is called, and any connection/authentication
-// errors will be returned by Send().
+// Attachments are read when SignAndSend() is called, and any connection/authentication
+// errors will be returned by SignAndSend().
 func (m *MailYak) SignAndSend(s dkim.Signature, key *rsa.PrivateKey) error {
 	buf, err := m.MimeBuf()
 	if err != nil {
@@ -101,6 +82,25 @@ func (m *MailYak) SignAndSend(s dkim.Signature, key *rsa.PrivateKey) error {
 		m.fromAddr,
 		append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...),
 		output.Bytes(),
+	)
+}
+
+// Send attempts to send the built email via the configured SMTP server.
+//
+// Attachments are read when Send() is called, and any connection/authentication
+// errors will be returned by Send().
+func (m *MailYak) Send() error {
+	buf, err := m.MimeBuf()
+	if err != nil {
+		return err
+	}
+
+	return smtp.SendMail(
+		m.host,
+		m.auth,
+		m.fromAddr,
+		append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...),
+		buf.Bytes(),
 	)
 }
 
