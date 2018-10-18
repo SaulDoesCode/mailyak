@@ -2,11 +2,14 @@ package mailyak
 
 import (
 	"bytes"
+	"crypto/rsa"
 	"fmt"
 	"net/smtp"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/driusan/dkim"
 )
 
 // TODO: in the future, when aliasing is supported or we're making a breaking
@@ -28,6 +31,7 @@ type MailYak struct {
 	attachments    []attachment
 	auth           smtp.Auth
 	trimRegex      *regexp.Regexp
+	key            *rsa.PrivateKey
 	host           string
 	writeBccHeader bool
 	date           string
@@ -72,6 +76,32 @@ func (m *MailYak) Send() error {
 		m.fromAddr,
 		append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...),
 		buf.Bytes(),
+	)
+}
+
+// SignAndSend attempts to send the built email via the configured SMTP server.
+//
+// Attachments are read when Send() is called, and any connection/authentication
+// errors will be returned by Send().
+func (m *MailYak) SignAndSend(s dkim.Signature, key *rsa.PrivateKey) error {
+	buf, err := m.buildMime()
+	if err != nil {
+		return err
+	}
+
+	var output bytes.Buffer
+
+	err = dkim.SignMessage(s, bytes.NewReader(buf.Bytes()), &output, key, "\r\n")
+	if err != nil {
+		return err
+	}
+
+	return smtp.SendMail(
+		m.host,
+		m.auth,
+		m.fromAddr,
+		append(append(m.toAddrs, m.ccAddrs...), m.bccAddrs...),
+		output.Bytes(),
 	)
 }
 
